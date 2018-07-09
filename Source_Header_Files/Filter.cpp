@@ -3,7 +3,7 @@ Created by: Eldon Lin
 Last Edited by: Eldon Lin
 Contributers: Eldon Lin
 Created on 2018-07-06 12:36am
-Last edited on 2018-07-06 1:50am
+Last Edited on 2018-07-09 12:33am by Eldon Lin
 Class Description: filters, grey and binarizes images. Can check if file can open
 Class invariant: a source must be passed through the function. 
 */
@@ -39,7 +39,7 @@ void Filter:: smoothingByBilateral(Mat aSrc)
 	// display the source image
 	imshow("Before", aSrc);
 
-	for (int i = 1; i<25; i+= 10)
+	for (int i = 1; i<50; i+= 10)
 	{
 		// Bilateral
 
@@ -48,19 +48,52 @@ void Filter:: smoothingByBilateral(Mat aSrc)
 		//show the blurred image with the text
 		//imshow("Bilateral filter", dst);
 		BinarizeByOtsu(dst);
+		FindContours(bin);
 		//cout << "Kernal Size: " << i << " x " << i << endl; //debugging purposes
 															//wait for some number of seconds. 1000=1second
 		waitKey(1000);
 	}
-
+	
 }
 
 //Uses Otsu method to binarize. Also makes picture gray
 void Filter::BinarizeByOtsu(Mat aSrc)
 {
-	Mat bin;
+	
 	cvtColor(aSrc, aSrc, COLOR_RGB2GRAY, 0);
 	//imshow("after gray", aSrc);
 	threshold(aSrc, bin, 0, 255, THRESH_OTSU);
-	imshow("Binarized Image", bin);
+	//imshow("Binarized Image", bin);
+
 }//end of Filter.cpp
+
+
+ //retrieves contours from the binary image and draws the image
+ //Function invariance: must pass in a Binary image 
+void Filter::FindContours(Mat aBin)
+{
+    
+	RNG rng(1234);
+	findContours(bin, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
+	Mat drawing = Mat::zeros(bin.size(), CV_8UC3);
+	for (int i = 0; i< contours.size(); i++)
+	{
+		Scalar color = Scalar(rng.uniform(255, 255), rng.uniform(255, 255), rng.uniform(255, 255));
+		drawContours(drawing, contours, i, color, 2, 8, hierarchy, 0, Point());
+	}
+
+	/// Show in a window
+	namedWindow("Contours", CV_WINDOW_AUTOSIZE);
+	imshow("Contours", drawing);
+
+
+}
+
+
+
+
+//returns binary image
+Mat Filter:: getBin()
+{
+	return bin;
+}
