@@ -4,13 +4,15 @@ Created by Eldon Lin
 Last Edited by: Eldon Lin
 Contributers: Eldon Lin
 Created on 2018-07-06 12:36am
-Last Edited on 2018-07-09 12:33am by Eldon Lin
+Last Edited on 2018-07-16 9:35 by Eldon Lin
 Class Description: filters, grey and binarizes images. Can check if file can open
 Class invariant: a source must be passed through the function.
 */
 
 #include "opencv2/imgproc.hpp"
 #include "opencv2/highgui.hpp"
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 #include <iostream>
 
 using namespace cv;
@@ -23,9 +25,16 @@ private:
 	char** argv;
 	//Uses Otsu method to binarize. Also makes picture gray
 	void BinarizeByOtsu(Mat aSrc);
+	void Label(Mat aSrc);
+	void setLabel(cv::Mat& im, const std::string label, std::vector<cv::Point>& contour);
+	double angle(cv::Point pt1, cv::Point pt2, cv::Point pt0);
 	Mat bin;
 	vector<vector<Point> > contours;
+	std::vector<cv::Point> approx;
 	vector<Vec4i> hierarchy;
+	Mat dst; 
+	Mat drawing;
+	
 public: 
 	
 	//Check if file can open
