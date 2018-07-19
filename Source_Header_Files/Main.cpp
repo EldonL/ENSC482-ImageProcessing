@@ -89,11 +89,10 @@ int main(int argc, char** argv)
 	//Hysteresis Thresholding
 	//Canny does the binarization
 	//last parameter must be between 3 to 7, it is the sobel kernel size. Larger, the more blurry.
-	//Original code was 5 change to 7
+	//Original code was 5. Changed to 7
 	cv::Mat bw;
 	cv::Canny(gray, bw, 0, 500, 7);
 	
-
 	// Find contours
 	std::vector<std::vector<cv::Point> > contours;
 	cv::findContours(bw.clone(), contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
@@ -115,7 +114,7 @@ int main(int argc, char** argv)
 		{
 			setLabel(dst, "TRI", contours[i]);    // Triangles
 		}
-		else if (approx.size() >= 4 && approx.size() <= 6)
+		else if (approx.size() >= 4 && approx.size() <= 7)
 		{
 			// Number of vertices of polygonal curve
 			int vtc = approx.size();
@@ -141,6 +140,10 @@ int main(int argc, char** argv)
 			//else if (vtc == 6 && mincos >= -0.55 && maxcos <= -0.45)
 			else if (vtc == 6 /*&& mincos >= -0.55 && maxcos <= -0.45*/)
 				setLabel(dst, "HEXA", contours[i]);
+			else if (vtc == 7 )
+				setLabel(dst, "hepta", contours[i]);
+			/*else if (vtc == 8 && mincos >= -0.55 && maxcos <= -0.45)
+				setLabel(dst, "Octa", contours[i]);*/
 		}
 		else
 		{
