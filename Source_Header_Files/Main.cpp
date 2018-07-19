@@ -149,8 +149,8 @@ int main(int argc, char** argv)
 			cv::Rect r = cv::boundingRect(contours[i]);
 			int radius = r.width / 2;
 
-			if (std::abs(1 - ((double)r.width / r.height)) <= 0.035 &&
-				std::abs(1 - (area / (CV_PI * std::pow(radius, 2)))) <= 0.035)
+			if (std::abs(1 - ((double)r.width / r.height)) <= 0.2 &&
+				std::abs(1 - (area / (CV_PI * std::pow(radius, 2)))) <= 0.2)
 				setLabel(dst, "CIR", contours[i]);
 			else if (std::abs(1 - ((double)r.width / r.height)) >= 0.2 &&
 				std::abs(1 - (area / (CV_PI * (double)r.width * (double)r.height)) >= 0.2))
