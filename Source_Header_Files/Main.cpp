@@ -88,8 +88,11 @@ int main(int argc, char** argv)
 	//Non-maximum suppression
 	//Hysteresis Thresholding
 	//Canny does the binarization
+	//last parameter must be between 3 to 7, it is the sobel kernel size. Larger, the more blurry.
+	//Original code was 5 change to 7
 	cv::Mat bw;
-	cv::Canny(gray, bw, 0, 50, 5);
+	cv::Canny(gray, bw, 0, 500, 7);
+	
 
 	// Find contours
 	std::vector<std::vector<cv::Point> > contours;
@@ -133,7 +136,7 @@ int main(int argc, char** argv)
 			// to determine the shape of the contour
 			if (vtc == 4 && mincos >= -0.1 && maxcos <= 0.3)
 				setLabel(dst, "RECT", contours[i]);
-			else if (vtc == 5 /*&& mincos >= -0.34 && maxcos <= -0.27*/)
+			else if (vtc == 5 && mincos >= -0.44 && maxcos <= -0.17)
 				setLabel(dst, "PENTA", contours[i]);
 			//else if (vtc == 6 && mincos >= -0.55 && maxcos <= -0.45)
 			else if (vtc == 6 /*&& mincos >= -0.55 && maxcos <= -0.45*/)
@@ -146,15 +149,15 @@ int main(int argc, char** argv)
 			cv::Rect r = cv::boundingRect(contours[i]);
 			int radius = r.width / 2;
 
-			if (std::abs(1 - ((double)r.width / r.height)) <= 0.2 &&
-				std::abs(1 - (area / (CV_PI * std::pow(radius, 2)))) <= 0.2)
+			if (std::abs(1 - ((double)r.width / r.height)) <= 0.035 &&
+				std::abs(1 - (area / (CV_PI * std::pow(radius, 2)))) <= 0.035)
 				setLabel(dst, "CIR", contours[i]);
 			else if (std::abs(1 - ((double)r.width / r.height)) >= 0.2 &&
 				std::abs(1 - (area / (CV_PI * (double)r.width * (double)r.height)) >= 0.2))
 				setLabel(dst, "OVL", contours[i]);
 		}
 	}
-	//cv::imshow("bw", bw);
+	cv::imshow("bw", bw);
 	cv::imshow("src", src);
 	cv::imshow("dst", dst);
 	cv::waitKey(0);
