@@ -4,7 +4,7 @@
 //Last Edited by: Eldon Lin
 //Contributers: Eldon Lin, Jehaan Joseph
 //Created on 2018-06-30 10:00pm by Eldon Lin
-//Last Edited on 2018-07-19 11:45pm by Eldon Lin
+//Last Edited on 2018-07-23 2:46pm by Eldon Lin
 //References
 //K. Hong. "Filters A - Average and GaussianBlur." http://www.bogotobogo.com/OpenCV/opencv_3_tutorial_imgproc_gausian_median_blur_bilateral_filter_image_smoothing.php. [Accessed: July 2, 2018]
 //K. Hong. "Filters B - MedianBlur and Bilateral." http://www.bogotobogo.com/OpenCV/opencv_3_tutorial_imgproc_gausian_median_blur_bilateral_filter_image_smoothing_B.php. [Accesed: July 2, 2018]
@@ -35,7 +35,7 @@ using namespace cv;
 using namespace std;
 
 Mat src, erosion_dst, dilation_dst;
-
+bool isCircle = false; 
 /**
 * Helper function to find a cosine of angle between vectors
 * from pt0->pt1 and pt0->pt2
@@ -144,6 +144,9 @@ int main(int argc, char** argv)
 				setLabel(dst, "hepta", contours[i]);
 			/*else if (vtc == 8 && mincos >= -0.55 && maxcos <= -0.45)
 				setLabel(dst, "Octa", contours[i]);*/
+			else
+				setLabel(dst, "unknown", contours[i]);
+		
 		}
 		else
 		{
@@ -151,13 +154,57 @@ int main(int argc, char** argv)
 			double area = cv::contourArea(contours[i]);
 			cv::Rect r = cv::boundingRect(contours[i]);
 			int radius = r.width / 2;
+			// Number of vertices of polygonal curve
+			int vtc = approx.size();
 
-			if (std::abs(1 - ((double)r.width / r.height)) <= 0.2 &&
+			// Get the cosines of all corners
+			std::vector<double> cos;
+			for (int j = 2; j < vtc + 1; j++)
+				cos.push_back(angle(approx[j%vtc], approx[j - 2], approx[j - 1]));
+
+			// Sort ascending the cosine values
+			std::sort(cos.begin(), cos.end());
+
+			// Get the lowest and the highest cosine
+			double mincos = cos.front();
+			double maxcos = cos.back();
+			vector<Vec3f> circles;
+			//reading from gray scale
+			HoughCircles(gray, circles, CV_HOUGH_GRADIENT, 1, gray.rows / 8, 200, 100, 0, 0);
+			for (size_t i = 0; i < circles.size(); i++)
+			{
+				Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
+				int radius = cvRound(circles[i][2]);
+				// circle center
+				//circle(dst, center, 3, Scalar(0, 255, 0), -1, 8, 0);
+				// circle outline
+				circle(dst, center, radius, Scalar(0, 0, 255), 3, 8, 0);
+				isCircle = true; 
+			}
+			if (isCircle)
+			{
+				setLabel(dst, "CIR", contours[i]);
+				isCircle = false; 
+			}
+			else if (vtc == 8)
+			{
+				setLabel(dst, "octagon", contours[i]);
+			}
+			else if (std::abs(1 - ((double)r.width / r.height)) >= 0.2 &&
+				std::abs(1 - (area / (CV_PI * (double)r.width * (double)r.height)) >= 0.2))
+				setLabel(dst, "OVL", contours[i]);
+			else
+				setLabel(dst, "round obj", contours[i]);
+			/*if (vtc == 8 && mincos >= -0.75 && maxcos <= -0.7)
+				setLabel(dst, "Octagon", contours[i]);
+			else if (std::abs(1 - ((double)r.width / r.height)) <= 0.2 &&
 				std::abs(1 - (area / (CV_PI * std::pow(radius, 2)))) <= 0.2)
 				setLabel(dst, "CIR", contours[i]);
 			else if (std::abs(1 - ((double)r.width / r.height)) >= 0.2 &&
 				std::abs(1 - (area / (CV_PI * (double)r.width * (double)r.height)) >= 0.2))
 				setLabel(dst, "OVL", contours[i]);
+			else
+				setLabel(dst, "round obj", contours[i]);*/
 		}
 	}
 	cv::imshow("bw", bw);
