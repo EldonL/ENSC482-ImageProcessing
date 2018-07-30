@@ -13,6 +13,7 @@
 //"Learn OpenCV by Examples." http://opencvexamples.blogspot.com/2013/09/find-contour.html. [Accessed July 8, 2018]
 //A. Tiger. "opencv project Digital Image Processing." https://opencvproject.wordpress.com/projects-files/detection-shape/. [Accessed July 8,2018].
 // "Canny Edge Detection." https://docs.opencv.org/3.1.0/da/d22/tutorial_py_canny.html [Accessed July 19,2018]
+//"Reading and Writing Video" https://docs.opencv.org/3.0-beta/modules/videoio/doc/reading_and_writing_video.html
 //*/
 
 /**
@@ -207,11 +208,32 @@ int main(int argc, char** argv)
 				setLabel(dst, "round obj", contours[i]);*/
 		}
 	}
-	cv::imshow("bw", bw);
-	cv::imshow("src", src);
+	//cv::imshow("gray", gray);
+	//cv::imshow("bw", bw);
+	//cv::imshow("src", src);
 	cv::imshow("dst", dst);
-	cv::waitKey(0);
+	//cv::waitKey(0);
+
+	//Video stuff
+	VideoCapture cap(0); // open the default camera
+	if (!cap.isOpened())  // check if we succeeded
+		return -1;
+
+	Mat edges;
+	namedWindow("edges", 1);
+	for (;;)
+	{
+		Mat frame;
+		cap >> frame; // get a new frame from camera
+		cvtColor(frame, edges, COLOR_BGR2GRAY);
+		GaussianBlur(edges, edges, Size(7, 7), 1.5, 1.5);
+		Canny(edges, edges, 0, 30, 3);
+		imshow("edges", edges);
+		if (waitKey(30) >= 0) break;
+	}
+	// the camera will be deinitialized automatically in VideoCapture destructor
 	return 0;
+
 }
 
 //
