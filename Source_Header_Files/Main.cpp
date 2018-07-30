@@ -4,7 +4,7 @@
 //Last Edited by: Eldon Lin
 //Contributers: Eldon Lin, Jehaan Joseph
 //Created on 2018-06-30 10:00pm by Eldon Lin
-//Last Edited on 2018-07-23 4:29pm by Eldon Lin
+//Last Edited on 2018-07-30 3:56pm by Eldon Lin
 //References
 //K. Hong. "Filters A - Average and GaussianBlur." http://www.bogotobogo.com/OpenCV/opencv_3_tutorial_imgproc_gausian_median_blur_bilateral_filter_image_smoothing.php. [Accessed: July 2, 2018]
 //K. Hong. "Filters B - MedianBlur and Bilateral." http://www.bogotobogo.com/OpenCV/opencv_3_tutorial_imgproc_gausian_median_blur_bilateral_filter_image_smoothing_B.php. [Accesed: July 2, 2018]
