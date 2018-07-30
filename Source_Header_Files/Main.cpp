@@ -13,8 +13,26 @@
 //"Learn OpenCV by Examples." http://opencvexamples.blogspot.com/2013/09/find-contour.html. [Accessed July 8, 2018]
 //A. Tiger. "opencv project Digital Image Processing." https://opencvproject.wordpress.com/projects-files/detection-shape/. [Accessed July 8,2018].
 // "Canny Edge Detection." https://docs.opencv.org/3.1.0/da/d22/tutorial_py_canny.html [Accessed July 19,2018]
-//"Reading and Writing Video" https://docs.opencv.org/3.0-beta/modules/videoio/doc/reading_and_writing_video.html
+//"Reading and Writing Video" https://docs.opencv.org/3.0-beta/modules/videoio/doc/reading_and_writing_video.html [Accessed July 30, 2018]
+// "Ball Tracking / Detection using OpenCV " http://anikettatipamula.blogspot.com/2012/12/ball-tracking-detection-using-opencv.html [Accessed July 30, 2018]
+// "How to Detect and Track Object With OpenCV" https://www.intorobotics.com/how-to-detect-and-track-object-with-opencv/ [Accessed July 19,2018]
+// "OpenCV Basics - 12 - Webcam & Video Capture" https://www.youtube.com/watch?v=zhEqiW3qnos [Accessed: July 30,2018]
 //*/
+
+
+/*
+Possible Logic for camera capture with shape recognition 
+1. First I have converted the image from the camera from RGB to HSV 
+2. Then I have converted it into binary image using inRange() function  
+3. After that I have used erode() and dilate() functions to reduce the noise
+4. After getting a binary image with a reduced noise, I have used cvFindContours() function to find all the contours and then used cvApproxPoly() function to count the number of the edges. 
+5.The number of edges should tell you about the type of few simple shapes.
+References: 
+"Shape Detection & Tracking using Contours" https://www.opencv-srf.com/2011/09/object-detection-tracking-using-contours.html [Accessed July 30,2018]
+"Shape Recognition using OpenCV" https://www.youtube.com/watch?v=_LYGuOmq0c0 [Accessed July 30,2018]
+
+*/
+
 
 /**
 * Simple shape detector program.
