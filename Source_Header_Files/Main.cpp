@@ -22,13 +22,13 @@ H. Kyle "Tutorial: Real-Time Object Tracking Using OpenCV" https://www.youtube.c
 
 
 /*
-Possible Logic for camera capture with shape recognition 
-1. First I have converted the image from the camera from RGB to HSV 
-2. Then I have converted it into binary image using inRange() function  
+Possible Logic for camera capture with shape recognition
+1. First I have converted the image from the camera from RGB to HSV
+2. Then I have converted it into binary image using inRange() function
 3. After that I have used erode() and dilate() functions to reduce the noise
-4. After getting a binary image with a reduced noise, I have used cvFindContours() function to find all the contours and then used cvApproxPoly() function to count the number of the edges. 
+4. After getting a binary image with a reduced noise, I have used cvFindContours() function to find all the contours and then used cvApproxPoly() function to count the number of the edges.
 5.The number of edges should tell you about the type of few simple shapes.
-References: 
+References:
 "Shape Detection & Tracking using Contours" https://www.opencv-srf.com/2011/09/object-detection-tracking-using-contours.html [Accessed July 30,2018]
 "Shape Recognition using OpenCV" https://www.youtube.com/watch?v=_LYGuOmq0c0 [Accessed July 30,2018]
 
@@ -43,6 +43,7 @@ References:
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <cmath>
+#include "opencv2/opencv.hpp"
 
 
 #include "opencv2/imgproc.hpp"
@@ -57,11 +58,11 @@ using namespace std;
 #pragma region JC codes and Camera link 
 
 Mat src, erosion_dst, dilation_dst;
-bool isCircle = false; 
-/**
-* Helper function to find a cosine of angle between vectors
-* from pt0->pt1 and pt0->pt2
-*/
+bool isCircle = false;
+
+//Helper function to find a cosine of angle between vectors
+//from pt0->pt1 and pt0->pt2
+
 static double angle(cv::Point pt1, cv::Point pt2, cv::Point pt0)
 {
 	double dx1 = pt1.x - pt0.x;
@@ -71,9 +72,9 @@ static double angle(cv::Point pt1, cv::Point pt2, cv::Point pt0)
 	return (dx1*dx2 + dy1*dy2) / sqrt((dx1*dx1 + dy1*dy1)*(dx2*dx2 + dy2*dy2) + 1e-10);
 }
 
-/**
-* Helper function to display text in the center of a contour
-*/
+
+//Helper function to display text in the center of a contour
+
 void setLabel(cv::Mat& im, const std::string label, std::vector<cv::Point>& contour)
 {
 	int fontface = cv::FONT_HERSHEY_SIMPLEX;
@@ -105,7 +106,7 @@ void FindShapeContours(Mat src)
 	//last parameter must be between 3 to 7, it is the sobel kernel size. Larger, the more blurry.
 	//Original code was 5. Changed to 7
 	cv::Mat bw;
-	cv::Canny(gray, bw, 0, 500, 7);
+	cv::Canny(gray, bw, 0, 500, 5);
 
 	// Find contours
 	std::vector<std::vector<cv::Point> > contours;
@@ -195,9 +196,10 @@ void FindShapeContours(Mat src)
 				circle(dst, center, radius, Scalar(0, 0, 255), 3, 8, 0);
 				isCircle = true;
 			}
+
 			if (isCircle)
 			{
-				setLabel(dst, "CIR", contours[i]);
+				setLabel(dst, "cir", contours[i]);
 				isCircle = false;
 			}
 			else if (vtc == 8)
@@ -221,11 +223,11 @@ void FindShapeContours(Mat src)
 			setLabel(dst, "round obj", contours[i]);*/
 		}
 	}
-	//cv::imshow("gray", gray);
-	//cv::imshow("bw", bw);
-	//cv::imshow("src", src);
+	cv::imshow("gray", gray);
+	cv::imshow("bw", bw);
+	cv::imshow("src", src);
 	cv::imshow("dst", dst);
-	//cv::waitKey(0);
+	cv::waitKey(0);
 }
 
 int CameraLink()
@@ -312,33 +314,33 @@ string intToString(int number) {
 	ss << number;
 	return ss.str();
 }
-void createTrackbars() {
-	//create window for trackbars
+/*void createTrackbars() {
+//create window for trackbars
 
 
-	namedWindow(trackbarWindowName, 0);
-	//create memory to store trackbar name on window
-	char TrackbarName[50];
-	sprintf(TrackbarName, "H_MIN", H_MIN);
-	sprintf(TrackbarName, "H_MAX", H_MAX);
-	sprintf(TrackbarName, "S_MIN", S_MIN);
-	sprintf(TrackbarName, "S_MAX", S_MAX);
-	sprintf(TrackbarName, "V_MIN", V_MIN);
-	sprintf(TrackbarName, "V_MAX", V_MAX);
-	//create trackbars and insert them into window
-	//3 parameters are: the address of the variable that is changing when the trackbar is moved(eg.H_LOW),
-	//the max value the trackbar can move (eg. H_HIGH), 
-	//and the function that is called whenever the trackbar is moved(eg. on_trackbar)
-	//                                  ---->    ---->     ---->      
-	createTrackbar("H_MIN", trackbarWindowName, &H_MIN, H_MAX, on_trackbar);
-	createTrackbar("H_MAX", trackbarWindowName, &H_MAX, H_MAX, on_trackbar);
-	createTrackbar("S_MIN", trackbarWindowName, &S_MIN, S_MAX, on_trackbar);
-	createTrackbar("S_MAX", trackbarWindowName, &S_MAX, S_MAX, on_trackbar);
-	createTrackbar("V_MIN", trackbarWindowName, &V_MIN, V_MAX, on_trackbar);
-	createTrackbar("V_MAX", trackbarWindowName, &V_MAX, V_MAX, on_trackbar);
+namedWindow(trackbarWindowName, 0);
+//create memory to store trackbar name on window
+char TrackbarName[50];
+sprintf(TrackbarName, "H_MIN", H_MIN);
+sprintf(TrackbarName, "H_MAX", H_MAX);
+sprintf(TrackbarName, "S_MIN", S_MIN);
+sprintf(TrackbarName, "S_MAX", S_MAX);
+sprintf(TrackbarName, "V_MIN", V_MIN);
+sprintf(TrackbarName, "V_MAX", V_MAX);
+//create trackbars and insert them into window
+//3 parameters are: the address of the variable that is changing when the trackbar is moved(eg.H_LOW),
+//the max value the trackbar can move (eg. H_HIGH),
+//and the function that is called whenever the trackbar is moved(eg. on_trackbar)
+//                                  ---->    ---->     ---->
+createTrackbar("H_MIN", trackbarWindowName, &H_MIN, H_MAX, on_trackbar);
+createTrackbar("H_MAX", trackbarWindowName, &H_MAX, H_MAX, on_trackbar);
+createTrackbar("S_MIN", trackbarWindowName, &S_MIN, S_MAX, on_trackbar);
+createTrackbar("S_MAX", trackbarWindowName, &S_MAX, S_MAX, on_trackbar);
+createTrackbar("V_MIN", trackbarWindowName, &V_MIN, V_MAX, on_trackbar);
+createTrackbar("V_MAX", trackbarWindowName, &V_MAX, V_MAX, on_trackbar);
 
 
-}
+}*/
 void drawObject(int x, int y, Mat &frame) {
 
 	//use some of the openCV drawing functions to draw crosshairs
@@ -431,77 +433,92 @@ void trackFilteredObject(int &x, int &y, Mat threshold, Mat &cameraFeed) {
 	}
 }
 
-void TrackBarCodes()
+/*void TrackBarCodes()
 {
-	//some boolean variables for different functionality within this
-	//program
-	bool trackObjects = true;
-	bool useMorphOps = true;
-	//Matrix to store each frame of the webcam feed
-	Mat cameraFeed;
-	//matrix storage for HSV image
-	Mat HSV;
-	//matrix storage for binary threshold image
-	Mat threshold;
-	//x and y values for the location of the object
-	int x = 0, y = 0;
-	//create slider bars for HSV filtering
-	createTrackbars();
-	//video capture object to acquire webcam feed
-	VideoCapture capture;
-	//open capture object at location zero (default location for webcam)
-	capture.open(0);
-	//set height and width of capture frame
-	capture.set(CV_CAP_PROP_FRAME_WIDTH, FRAME_WIDTH);
-	capture.set(CV_CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT);
-	//start an infinite loop where webcam feed is copied to cameraFeed matrix
-	//all of our operations will be performed within this loop
-	while (1) {
-		//store image to matrix
-		capture.read(cameraFeed);
-		//convert frame from BGR to HSV colorspace
-		cvtColor(cameraFeed, HSV, COLOR_BGR2HSV);
-		//filter HSV image between values and store filtered image to
-		//threshold matrix
-		inRange(HSV, Scalar(H_MIN, S_MIN, V_MIN), Scalar(H_MAX, S_MAX, V_MAX), threshold);
-		//perform morphological operations on thresholded image to eliminate noise
-		//and emphasize the filtered object(s)
-		if (useMorphOps)
-			morphOps(threshold);
-		//pass in thresholded frame to our object tracking function
-		//this function will return the x and y coordinates of the
-		//filtered object
-		if (trackObjects)
-			trackFilteredObject(x, y, threshold, cameraFeed);
+//some boolean variables for different functionality within this
+//program
+bool trackObjects = true;
+bool useMorphOps = true;
+//Matrix to store each frame of the webcam feed
+Mat cameraFeed;
+//matrix storage for HSV image
+Mat HSV;
+//matrix storage for binary threshold image
+Mat threshold;
+//x and y values for the location of the object
+int x = 0, y = 0;
+//create slider bars for HSV filtering
+createTrackbars();
+//video capture object to acquire webcam feed
+VideoCapture capture;
+//open capture object at location zero (default location for webcam)
+capture.open(0);
+//set height and width of capture frame
+capture.set(CV_CAP_PROP_FRAME_WIDTH, FRAME_WIDTH);
+capture.set(CV_CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT);
+//start an infinite loop where webcam feed is copied to cameraFeed matrix
+//all of our operations will be performed within this loop
+while (1) {
+//store image to matrix
+capture.read(cameraFeed);
+//convert frame from BGR to HSV colorspace
+cvtColor(cameraFeed, HSV, COLOR_BGR2HSV);
+//filter HSV image between values and store filtered image to
+//threshold matrix
+inRange(HSV, Scalar(H_MIN, S_MIN, V_MIN), Scalar(H_MAX, S_MAX, V_MAX), threshold);
+//perform morphological operations on thresholded image to eliminate noise
+//and emphasize the filtered object(s)
+if (useMorphOps)
+morphOps(threshold);
+//pass in thresholded frame to our object tracking function
+//this function will return the x and y coordinates of the
+//filtered object
+if (trackObjects)
+trackFilteredObject(x, y, threshold, cameraFeed);
 
-		//show frames 
-		imshow(windowName2, threshold);
-		imshow(windowName, cameraFeed);
-		imshow(windowName1, HSV);
+//show frames
+imshow(windowName2, threshold);
+imshow(windowName, cameraFeed);
+imshow(windowName1, HSV);
 
 
-		//delay 30ms so that screen can refresh.
-		//image will not appear without this waitKey() command
-		waitKey(30);
-	}
+//delay 30ms so that screen can refresh.
+//image will not appear without this waitKey() command
+waitKey(30);
 }
+}*/
 #pragma endregion
 
 int main(int argc, char* argv[])
 {
 
 	/*INSTRUCTION: Comment out either "JC and Camera Codes" (4 lines)  or TrackBarCodes (1 line)*/
-	
+
 	//JC and Camera Codes
+
+	VideoCapture cap;
+	// open the default camera, use something different from 0 otherwise;
+	// Check VideoCapture documentation.
+	if (!cap.open(0))
+		return 0;
+	for (;;)
+	{
+		Mat frame;
+		cap >> frame;
+		if (frame.empty()) break; // end of video stream
+		imshow("this is you, smile! :)", frame);
+		imwrite("../data/lena.jpg", frame);
+		if (waitKey(10) == 27) break; // stop capturing by pressing ESC 
+	}
+
 	CommandLineParser parser(argc, argv, "{@input | ../data/lena.jpg | input image}");
 	src = imread(parser.get<String>("@input"), IMREAD_COLOR);
 	FindShapeContours(src);
-	CameraLink();
-	
+	//CameraLink();
+
 	//Online Codes
 	//Converts RGB video to HSV. Tracks a specific object. Found on https://www.youtube.com/watch?v=bSeFrPrqZ2A
 	//TrackBarCodes();
 
 	return 0;
 }
-
