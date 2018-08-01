@@ -499,7 +499,7 @@ int main(int argc, char* argv[])
 	CameraLink();
 	
 	//Online Codes
-	//Converts RGB video to HSV. Tracks a specific object. Found on https://www.youtube.com/watch?v=bSeFrPrqZ2A
+	//Converts RGB video to HSV. Tracks a specific object. Found on "Tutorial: Real-Time Object Tracking Using OpenCV" https://www.youtube.com/watch?v=bSeFrPrqZ2A
 	//TrackBarCodes();
 
 	return 0;
