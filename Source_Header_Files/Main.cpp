@@ -4,7 +4,7 @@
 //Last Edited by: Eldon Lin
 //Contributers: Eldon Lin, Jehaan Joseph
 //Created on 2018-06-30 10:00pm by Eldon Lin
-//Last Edited on 2018-08-07 4:05pm by Eldon Lin
+//Last Edited on 2018-08-07 6:11pm by Eldon Lin
 //References
 //K. Hong. "Filters A - Average and GaussianBlur." http://www.bogotobogo.com/OpenCV/opencv_3_tutorial_imgproc_gausian_median_blur_bilateral_filter_image_smoothing.php. [Accessed: July 2, 2018]
 //K. Hong. "Filters B - MedianBlur and Bilateral." http://www.bogotobogo.com/OpenCV/opencv_3_tutorial_imgproc_gausian_median_blur_bilateral_filter_image_smoothing_B.php. [Accesed: July 2, 2018]
@@ -94,7 +94,7 @@ void searchForMovement(Mat thresholdImage, Mat &cameraFeed) {
 		std::vector<cv::Point> shapeToShow;
 		cv::approxPolyDP(cv::Mat(contours[i]), shapeToShow, cv::arcLength(cv::Mat(contours[i]), true)*0.02, true);
 		//largestContourVec.push_back(contours.at(contours.size() - 1));
-		
+		objectDetected = false;
 		
 		//make a bounding rectangle around the largest contour then find its centroid
 		//this will be the object's final estimated position.
@@ -147,11 +147,18 @@ void searchForMovement(Mat thresholdImage, Mat &cameraFeed) {
 			int vtc = shapeToShow.size();
 
 			if (std::abs(1 - ((double)r.width / r.height)) <= 0.2 && std::abs(1 - (area / (CV_PI * std::pow(radius, 2)))) <= 0.2)
+			{
 				name = "CIRC";
+				objectDetected = true;
+			}
+				
 			else if (std::abs(1 - ((double)r.width / r.height)) >= 0.2 &&
 				std::abs(1 - (area / (CV_PI * (double)r.width * (double)r.height)) >= 0.2))
+			{
 				name = "OVL";
-			objectDetected = true;
+				objectDetected = true;
+			}	
+			//do not put objectDetected outside of if or else if otherwise, objectDetected will always be true
 		}
 		
 		cout << shapeToShow.size() << endl;
