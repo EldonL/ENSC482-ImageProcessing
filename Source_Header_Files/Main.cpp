@@ -34,15 +34,24 @@ H. Kyle "OpenCV Tutorial: Real-Time Object Tracking Without Colour" https://www.
 
 #include "opencv2/imgproc.hpp"
 #include "opencv2/highgui.hpp"
+#include "opencv2/core.hpp"
 #include <iostream>
+
+#include <GL/glut.h>
+
 
 #include "Filter.h"
 
 using namespace cv;
 using namespace std;
 
+Mat frame1, frame2;
+GLfloat angles = 0.0;
+GLuint texture;
+
+
 //our sensitivity value to be used in the absdiff() function
-const static int SENSITIVITY_VALUE = 40;
+const static int SENSITIVITY_VALUE = 50;
 //size of blur used to smooth the intensity image output from absdiff() function
 const static int BLUR_SIZE = 10;
 //we'll have just one object to search for
@@ -77,7 +86,7 @@ void searchForMovement(Mat thresholdImage, Mat &cameraFeed) {
 	//notice how we use the '&' operator for objectDetected and cameraFeed. This is because we wish
 	//to take the values passed into the function and manipulate them, rather than just working with a copy.
 	//eg. we draw to the cameraFeed to be displayed in the main() function.
-	string name; 
+	string name;
 	bool objectDetected = false;
 	Mat temp;
 	thresholdImage.copyTo(temp);
@@ -87,15 +96,15 @@ void searchForMovement(Mat thresholdImage, Mat &cameraFeed) {
 	//find contours of filtered image using openCV findContours function
 	//findContours(temp,contours,hierarchy,CV_RETR_CCOMP,CV_CHAIN_APPROX_SIMPLE );// retrieves all contours
 	findContours(temp, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);// retrieves external contours
-	
-	for(int i=0; i<contours.size(); i++)
+
+	for (int i = 0; i<contours.size(); i++)
 	{
 		//storing 
 		std::vector<cv::Point> shapeToShow;
 		cv::approxPolyDP(cv::Mat(contours[i]), shapeToShow, cv::arcLength(cv::Mat(contours[i]), true)*0.02, true);
 		//largestContourVec.push_back(contours.at(contours.size() - 1));
 		objectDetected = false;
-		
+
 		//make a bounding rectangle around the largest contour then find its centroid
 		//this will be the object's final estimated position.
 		objectBoundingRectangle = boundingRect(shapeToShow);
@@ -105,11 +114,11 @@ void searchForMovement(Mat thresholdImage, Mat &cameraFeed) {
 		//update the objects positions by changing the 'theObject' array values
 		theObject[0] = xpos, theObject[1] = ypos;
 
-		
+
 		if (shapeToShow.size() == 3)
 		{
 			name = "TRI";
-			objectDetected = true; 
+			objectDetected = true;
 		}
 		else if (shapeToShow.size() >= 4 && shapeToShow.size() <= 7)
 		{
@@ -151,39 +160,83 @@ void searchForMovement(Mat thresholdImage, Mat &cameraFeed) {
 				name = "CIRC";
 				objectDetected = true;
 			}
-				
+
 			else if (std::abs(1 - ((double)r.width / r.height)) >= 0.2 &&
 				std::abs(1 - (area / (CV_PI * (double)r.width * (double)r.height)) >= 0.2))
 			{
 				name = "OVL";
 				objectDetected = true;
-			}	
+			}
 			//do not put objectDetected outside of if or else if otherwise, objectDetected will always be true
 		}
-		
-		cout << shapeToShow.size() << endl;
-	
-	//make some temp x and y variables so we dont have to type out so much
-	int x = theObject[0];
-	int y = theObject[1];
-	if (objectDetected)
-	{
-		////draw some crosshairs around the object
-		//circle(cameraFeed, Point(x, y), 20, Scalar(0, 255, 0), 2);
-		//line(cameraFeed, Point(x, y), Point(x, y - 25), Scalar(0, 255, 0), 2);
-		//line(cameraFeed, Point(x, y), Point(x, y + 25), Scalar(0, 255, 0), 2);
-		//line(cameraFeed, Point(x, y), Point(x - 25, y), Scalar(0, 255, 0), 2);
-		//line(cameraFeed, Point(x, y), Point(x + 25, y), Scalar(0, 255, 0), 2);
 
-		//write the position of the object to the screen
-		//putText(cameraFeed, "Tracking object at (" + intToString(x) + "," + intToString(y) + ")", Point(x, y), 1, 1, Scalar(255, 0, 0), 2);
-		putText(cameraFeed, name, Point(x, y), 1, 1, Scalar(0, 255, 255), 2);
-	}
-	
+		cout << shapeToShow.size() << endl;
+
+		//make some temp x and y variables so we dont have to type out so much
+		int x = theObject[0];
+		int y = theObject[1];
+		if (objectDetected)
+		{
+			////draw some crosshairs around the object
+			//circle(cameraFeed, Point(x, y), 20, Scalar(0, 255, 0), 2);
+			//line(cameraFeed, Point(x, y), Point(x, y - 25), Scalar(0, 255, 0), 2);
+			//line(cameraFeed, Point(x, y), Point(x, y + 25), Scalar(0, 255, 0), 2);
+			//line(cameraFeed, Point(x, y), Point(x - 25, y), Scalar(0, 255, 0), 2);
+			//line(cameraFeed, Point(x, y), Point(x + 25, y), Scalar(0, 255, 0), 2);
+
+			//write the position of the object to the screen
+			//putText(cameraFeed, "Tracking object at (" + intToString(x) + "," + intToString(y) + ")", Point(x, y), 1, 1, Scalar(255, 0, 0), 2);
+			putText(cameraFeed, name, Point(x, y), 1, 1, Scalar(0, 255, 255), 2);
+		}
+
 	}
 
 }
-int main() {
+
+
+void on_opengl(void* param)
+{
+	glLoadIdentity();
+	glTranslated(0.0, 0.0, -1.0);
+	glRotatef(55, 1, 0, 0);
+	glRotatef(45, 0, 1, 0);
+	glRotatef(0, 0, 0, 1);
+	static const int coords[6][4][3] = {
+		{ { +1, -1, -1 },{ -1, -1, -1 },{ -1, +1, -1 },{ +1, +1, -1 } },
+		{ { +1, +1, -1 },{ -1, +1, -1 },{ -1, +1, +1 },{ +1, +1, +1 } },
+		{ { +1, -1, +1 },{ +1, -1, -1 },{ +1, +1, -1 },{ +1, +1, +1 } },
+		{ { -1, -1, -1 },{ -1, -1, +1 },{ -1, +1, +1 },{ -1, +1, -1 } },
+		{ { +1, -1, +1 },{ -1, -1, +1 },{ -1, -1, -1 },{ +1, -1, -1 } },
+		{ { -1, -1, +1 },{ +1, -1, +1 },{ +1, +1, +1 },{ -1, +1, +1 } }
+	};
+	for (int i = 0; i < 6; ++i) {
+		glColor3ub(i * 20, 100 + i * 10, i * 42);
+		glBegin(GL_QUADS);
+		for (int j = 0; j < 4; ++j) {
+			glVertex3d(0.2 * coords[i][j][0], 0.2 * coords[i][j][1], 0.2 * coords[i][j][2]);
+		}
+		glEnd();
+	}
+}
+
+int loadTexture()
+{
+
+	if (frame1.data == NULL)
+		return -1;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, frame1.cols, frame1.rows, 0,GL_BGR, GL_UNSIGNED_BYTE, frame1.data);
+	return 0;
+
+}
+
+int main(int argc, char **argv) {
+	glutInit(&argc, argv);
 
 	//some boolean variables for added functionality
 	bool objectDetected = false;
@@ -194,7 +247,7 @@ int main() {
 	bool pause = false;
 	//set up the matrices that we will need
 	//the two frames we will be comparing
-	Mat frame1, frame2;
+
 	//their grayscale images (needed for absdiff() function)
 	Mat grayImage1, grayImage2;
 	//resulting difference image
@@ -203,7 +256,7 @@ int main() {
 	Mat thresholdImage;
 	//video capture object.
 	VideoCapture capture;
-	
+
 	//fg mask fg mask generated by MOG2 method
 	Mat fgMaskMOG2;
 	//MOG2 Background subtractor
@@ -226,98 +279,111 @@ int main() {
 		//check if the video has reach its last frame.
 		//we add '-1' because we are reading two frames from the video at a time.
 		//if this is not included, we get a memory error!
-	
-			//read first frame
-			capture.read(frame1);
-			pMOG2->apply(frame1, differenceImage);
-			//convert frame1 to gray scale for frame differencing
-			cv::cvtColor(frame1, grayImage1, COLOR_BGR2GRAY);
-			//copy second frame
+
+		//read first frame
+		capture.read(frame1);
+		pMOG2->apply(frame1, differenceImage);
+		//convert frame1 to gray scale for frame differencing
+		cv::cvtColor(frame1, grayImage1, COLOR_BGR2GRAY);
+		//copy second frame
 		/*	capture.read(frame2);
-			//convert frame2 to gray scale for frame differencing
-			cv::cvtColor(frame2, grayImage2, COLOR_BGR2GRAY);
-			//perform frame differencing with the sequential images. This will output an "intensity image"
-			//do not confuse this with a threshold image, we will need to perform thresholding afterwards.
-			cv::absdiff(grayImage1, grayImage2, differenceImage);*/
-			//threshold intensity image at a given sensitivity value
-			cv::threshold(grayImage1, thresholdImage, SENSITIVITY_VALUE, 255, THRESH_BINARY);
-			GaussianBlur(thresholdImage, thresholdImage, Size(7, 7), 1.5, 1.5);
-			Canny(thresholdImage, thresholdImage, 0, 5000, 5);
-			
-			if (debugMode == true) {
-				//show the difference image and threshold image
-				cv::imshow("Difference Image", differenceImage);
-				cv::imshow("Threshold Image", thresholdImage);
-			}
-			else {
-				//if not in debug mode, destroy the windows so we don't see them anymore
-				cv::destroyWindow("Difference Image");
-				cv::destroyWindow("Threshold Image");
-			}
-			//blur the image to get rid of the noise. This will output an intensity image
-			//cv::blur(thresholdImage, thresholdImage, cv::Size(BLUR_SIZE, BLUR_SIZE));
-			//threshold again to obtain binary image from blur output
-			//cv::threshold(thresholdImage, thresholdImage, SENSITIVITY_VALUE, 255, THRESH_BINARY);
+		//convert frame2 to gray scale for frame differencing
+		cv::cvtColor(frame2, grayImage2, COLOR_BGR2GRAY);
+		//perform frame differencing with the sequential images. This will output an "intensity image"
+		//do not confuse this with a threshold image, we will need to perform thresholding afterwards.
+		cv::absdiff(grayImage1, grayImage2, differenceImage);*/
+		//threshold intensity image at a given sensitivity value
+		cv::threshold(grayImage1, thresholdImage, SENSITIVITY_VALUE, 255, THRESH_BINARY);
+		GaussianBlur(thresholdImage, thresholdImage, Size(7, 7), 1.5, 1.5);
+		Canny(thresholdImage, thresholdImage, 0, 3000, 5);
 
-			
-			if (debugMode == true) {
-				//show the threshold image after it's been "blurred"
+		if (debugMode == true) {
+			//show the difference image and threshold image
+			cv::imshow("Difference Image", differenceImage);
+			cv::imshow("Threshold Image", thresholdImage);
+		}
+		else {
+			//if not in debug mode, destroy the windows so we don't see them anymore
+			cv::destroyWindow("Difference Image");
+			cv::destroyWindow("Threshold Image");
+		}
+		//blur the image to get rid of the noise. This will output an intensity image
+		//cv::blur(thresholdImage, thresholdImage, cv::Size(BLUR_SIZE, BLUR_SIZE));
+		//threshold again to obtain binary image from blur output
+		//cv::threshold(thresholdImage, thresholdImage, SENSITIVITY_VALUE, 255, THRESH_BINARY);
 
-				imshow("Final Threshold Image", thresholdImage);
 
-			}
-			else {
-				//if not in debug mode, destroy the windows so we don't see them anymore
-				cv::destroyWindow("Final Threshold Image");
-			}
+		if (debugMode == true) {
+			//show the threshold image after it's been "blurred"
 
-			//if tracking enabled, search for contours in our thresholded image
-			if (trackingEnabled) {
+			imshow("Final Threshold Image", thresholdImage);
 
-				searchForMovement(thresholdImage, frame1);
-			}
+		}
+		else {
+			//if not in debug mode, destroy the windows so we don't see them anymore
+			cv::destroyWindow("Final Threshold Image");
+		}
 
-			//show our captured frame
-			imshow("Frame1", frame1);
-			//check to see if a button has been pressed.
-			//this 10ms delay is necessary for proper operation of this program
-			//if removed, frames will not have enough time to referesh and a blank 
-			//image will appear.
-			switch (waitKey(10)) {
+		//if tracking enabled, search for contours in our thresholded image
+		if (trackingEnabled) {
 
-			case 27: //'esc' key has been pressed, exit program.
-				return 0;
-			case 116: //'t' has been pressed. this will toggle tracking
-				trackingEnabled = !trackingEnabled;
-				if (trackingEnabled == false) cout << "Tracking disabled." << endl;
-				else cout << "Tracking enabled." << endl;
-				break;
-			case 100: //'d' has been pressed. this will debug mode
-				debugMode = !debugMode;
-				if (debugMode == false) cout << "Debug mode disabled." << endl;
-				else cout << "Debug mode enabled." << endl;
-				break;
-			case 112: //'p' has been pressed. this will pause/resume the code.
-				pause = !pause;
-				if (pause == true) {
-					cout << "Code paused, press 'p' again to resume" << endl;
-					while (pause == true) {
-						//stay in this loop until 
-						switch (waitKey()) {
-							//a switch statement inside a switch statement? Mind blown.
-						case 112:
-							//change pause back to false
-							pause = false;
-							cout << "Code ResumedT" << endl;
-							break;
-						}
+			searchForMovement(thresholdImage, frame1);
+		}
+
+		////create new windows
+		//namedWindow("OPENGL CAMERA", WINDOW_OPENGL);
+		//// enable texture
+		//glEnable(GL_TEXTURE_2D);
+		//setOpenGlDrawCallback("OPENGL CAMERA", on_opengl);
+		////while (waitKey(30) != 'q')
+		//{
+		//	capture>> frame1;
+		//	//create first texture
+		//	loadTexture();
+		//	updateWindow("OPENGL CAMERA");
+		//	angles = angles + 4;
+		//}
+		//show our captured frame
+		imshow("Frame1", frame1);
+		//check to see if a button has been pressed.
+		//this 10ms delay is necessary for proper operation of this program
+		//if removed, frames will not have enough time to referesh and a blank 
+		//image will appear.
+		switch (waitKey(10)) {
+
+		case 27: //'esc' key has been pressed, exit program.
+			return 0;
+		case 116: //'t' has been pressed. this will toggle tracking
+			trackingEnabled = !trackingEnabled;
+			if (trackingEnabled == false) cout << "Tracking disabled." << endl;
+			else cout << "Tracking enabled." << endl;
+			break;
+		case 100: //'d' has been pressed. this will debug mode
+			debugMode = !debugMode;
+			if (debugMode == false) cout << "Debug mode disabled." << endl;
+			else cout << "Debug mode enabled." << endl;
+			break;
+		case 112: //'p' has been pressed. this will pause/resume the code.
+			pause = !pause;
+			if (pause == true) {
+				cout << "Code paused, press 'p' again to resume" << endl;
+				while (pause == true) {
+					//stay in this loop until 
+					switch (waitKey()) {
+						//a switch statement inside a switch statement? Mind blown.
+					case 112:
+						//change pause back to false
+						pause = false;
+						cout << "Code ResumedT" << endl;
+						break;
 					}
 				}
-
-
-
 			}
-	
+
+
+
+		}
+
 	}
 
 	return 0;
