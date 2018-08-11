@@ -26,20 +26,16 @@ H. Kyle "OpenCV Tutorial: Real-Time Object Tracking Without Colour" https://www.
 
 
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <cmath>
+#include <iostream>
+#include "opencv2/opencv.hpp"
+#include "opencv2/core.hpp"
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-#include <cmath>
-#include "opencv2/opencv.hpp"
-
-
-#include "opencv2/imgproc.hpp"
-#include "opencv2/highgui.hpp"
-#include "opencv2/core.hpp"
-#include <iostream>
-
 #include <GL/glut.h>
-
-
+#include <GL/gl.h>
 #include "Filter.h"
 
 using namespace cv;
@@ -60,6 +56,16 @@ int theObject[2] = { 0,0 };
 //bounding rectangle of the object, we will use the center of this as its position.
 Rect objectBoundingRectangle = Rect(0, 0, 0, 0);
 
+//threshold for corner detection
+int thresh = 150;
+
+struct myclass {
+	bool operator() (cv::Point pt1, cv::Point pt2) { return (pt1.x < pt2.x); }
+} myobject;
+
+struct myclass2 {
+	bool operator() (cv::Point pt1, cv::Point pt2) { return (pt1.x > pt2.x); }
+} myobject2;
 
 //int to string helper function
 string intToString(int number) {
@@ -88,7 +94,12 @@ void searchForMovement(Mat thresholdImage, Mat &cameraFeed) {
 	//eg. we draw to the cameraFeed to be displayed in the main() function.
 	string name;
 	bool objectDetected = false;
-	Mat temp;
+	Mat temp, temp2;
+	//for corner detection
+	Mat dst, gray;
+	Mat dst_norm, dst_norm_scaled;
+	//contains corner points
+	vector<Point> points;
 	thresholdImage.copyTo(temp);
 	//these two vectors needed for output of findContours
 	vector< vector<Point> > contours;
@@ -113,7 +124,6 @@ void searchForMovement(Mat thresholdImage, Mat &cameraFeed) {
 
 		//update the objects positions by changing the 'theObject' array values
 		theObject[0] = xpos, theObject[1] = ypos;
-
 
 		if (shapeToShow.size() == 3)
 		{
@@ -170,13 +180,14 @@ void searchForMovement(Mat thresholdImage, Mat &cameraFeed) {
 			//do not put objectDetected outside of if or else if otherwise, objectDetected will always be true
 		}
 
-		cout << shapeToShow.size() << endl;
+		//cout << shapeToShow.size() << endl;
 
 		//make some temp x and y variables so we dont have to type out so much
 		int x = theObject[0];
 		int y = theObject[1];
 		if (objectDetected)
 		{
+
 			////draw some crosshairs around the object
 			//circle(cameraFeed, Point(x, y), 20, Scalar(0, 255, 0), 2);
 			//line(cameraFeed, Point(x, y), Point(x, y - 25), Scalar(0, 255, 0), 2);
@@ -186,13 +197,36 @@ void searchForMovement(Mat thresholdImage, Mat &cameraFeed) {
 
 			//write the position of the object to the screen
 			//putText(cameraFeed, "Tracking object at (" + intToString(x) + "," + intToString(y) + ")", Point(x, y), 1, 1, Scalar(255, 0, 0), 2);
+
+			//sort(shapeToShow.begin(), shapeToShow.begin() + (shapeToShow.size()) / 2, myobject);
+			//sort(shapeToShow.begin() + (shapeToShow.size()) / 2, shapeToShow.end(), myobject2);
+
+			for (int i = 0; i < shapeToShow.size(); i++) {
+
+				if (i + 1 == shapeToShow.size())
+				{
+					line(cameraFeed, shapeToShow.at(i), shapeToShow.at(0), Scalar(0, 255, 0), 2, 8);
+					line(cameraFeed, shapeToShow.at(i)-Point(35,35), shapeToShow.at(0)- Point(35, 35), Scalar(0, 255, 0), 2, 8);
+					line(cameraFeed, shapeToShow.at(i), shapeToShow.at(i) - Point(35, 35), Scalar(0, 255, 0), 2, 8);
+					line(cameraFeed, shapeToShow.at(0), shapeToShow.at(0) - Point(35, 35), Scalar(0, 255, 0), 2, 8);
+				}
+				else
+				{
+					line(cameraFeed, shapeToShow.at(i), shapeToShow.at(i+1), Scalar(0, 255, 0), 2, 8);
+					line(cameraFeed, shapeToShow.at(i) - Point(35, 35), shapeToShow.at(i + 1) - Point(35, 35), Scalar(0, 255, 0), 2, 8);
+					line(cameraFeed, shapeToShow.at(i), shapeToShow.at(i) - Point(35, 35), Scalar(0, 255, 0), 2, 8);
+					line(cameraFeed, shapeToShow.at(i + 1), shapeToShow.at(i + 1) - Point(35, 35), Scalar(0, 255, 0), 2, 8);
+				}
+					
+
+			}
+
 			putText(cameraFeed, name, Point(x, y), 1, 1, Scalar(0, 255, 255), 2);
 		}
 
 	}
 
 }
-
 
 void on_opengl(void* param)
 {
@@ -241,7 +275,7 @@ int main(int argc, char **argv) {
 	//some boolean variables for added functionality
 	bool objectDetected = false;
 	//these two can be toggled by pressing 'd' or 't'
-	bool debugMode = true;
+	bool debugMode = false;
 	bool trackingEnabled = true;
 	//pause and resume code
 	bool pause = false;
@@ -297,10 +331,16 @@ int main(int argc, char **argv) {
 		GaussianBlur(thresholdImage, thresholdImage, Size(7, 7), 1.5, 1.5);
 		Canny(thresholdImage, thresholdImage, 0, 3000, 5);
 
+
+
 		if (debugMode == true) {
 			//show the difference image and threshold image
 			cv::imshow("Difference Image", differenceImage);
 			cv::imshow("Threshold Image", thresholdImage);
+
+			// Showing the result
+			//namedWindow("corners_window", CV_WINDOW_AUTOSIZE);
+			//imshow("corners_window", dst_norm_scaled);
 		}
 		else {
 			//if not in debug mode, destroy the windows so we don't see them anymore
@@ -379,11 +419,7 @@ int main(int argc, char **argv) {
 					}
 				}
 			}
-
-
-
 		}
-
 	}
 
 	return 0;
