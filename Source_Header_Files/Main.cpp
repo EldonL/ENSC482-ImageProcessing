@@ -4,7 +4,7 @@
 //Last Edited by: Eldon Lin
 //Contributers: Eldon Lin, Jehaan Joseph
 //Created on 2018-06-30 10:00pm by Eldon Lin
-//Last Edited on 2018-08-10 10:50pm by Eldon Lin
+//Last Edited on 2018-08-10 11:16pm by Eldon Lin
 //References
 //K. Hong. "Filters A - Average and GaussianBlur." http://www.bogotobogo.com/OpenCV/opencv_3_tutorial_imgproc_gausian_median_blur_bilateral_filter_image_smoothing.php. [Accessed: July 2, 2018]
 //K. Hong. "Filters B - MedianBlur and Bilateral." http://www.bogotobogo.com/OpenCV/opencv_3_tutorial_imgproc_gausian_median_blur_bilateral_filter_image_smoothing_B.php. [Accesed: July 2, 2018]
@@ -36,12 +36,12 @@ H. Kyle "OpenCV Tutorial: Real-Time Object Tracking Without Colour" https://www.
 #include <opencv2/imgproc/imgproc.hpp>
 #include <GL/glut.h>
 #include <GL/gl.h>
-#include "Filter.h"
+
 
 using namespace cv;
 using namespace std;
 
-Mat frame1, frame2;
+Mat frame1;
 GLfloat angles = 0.0;
 GLuint texture;
 
@@ -188,20 +188,6 @@ void searchForMovement(Mat thresholdImage, Mat &cameraFeed) {
 		int y = theObject[1];
 		if (objectDetected)
 		{
-
-			////draw some crosshairs around the object
-			//circle(cameraFeed, Point(x, y), 20, Scalar(0, 255, 0), 2);
-			//line(cameraFeed, Point(x, y), Point(x, y - 25), Scalar(0, 255, 0), 2);
-			//line(cameraFeed, Point(x, y), Point(x, y + 25), Scalar(0, 255, 0), 2);
-			//line(cameraFeed, Point(x, y), Point(x - 25, y), Scalar(0, 255, 0), 2);
-			//line(cameraFeed, Point(x, y), Point(x + 25, y), Scalar(0, 255, 0), 2);
-
-			//write the position of the object to the screen
-			//putText(cameraFeed, "Tracking object at (" + intToString(x) + "," + intToString(y) + ")", Point(x, y), 1, 1, Scalar(255, 0, 0), 2);
-
-			//sort(shapeToShow.begin(), shapeToShow.begin() + (shapeToShow.size()) / 2, myobject);
-			//sort(shapeToShow.begin() + (shapeToShow.size()) / 2, shapeToShow.end(), myobject2);
-
 			for (int i = 0; i < shapeToShow.size(); i++) {
 
 				if (i + 1 == shapeToShow.size())
@@ -279,8 +265,6 @@ int main(int argc, char **argv) {
 		GaussianBlur(thresholdImage, thresholdImage, Size(7, 7), 1.5, 1.5);
 		Canny(thresholdImage, thresholdImage, 0, 3000, 5);
 
-
-
 		if (debugMode == true) {
 			//show the difference image and threshold image
 			
@@ -293,7 +277,6 @@ int main(int argc, char **argv) {
 		else {
 			//if not in debug mode, destroy the windows so we don't see them anymore
 			cv::destroyWindow("Difference Image");
-			cv::destroyWindow("Threshold Image");
 		}
 		//blur the image to get rid of the noise. This will output an intensity image
 		//cv::blur(thresholdImage, thresholdImage, cv::Size(BLUR_SIZE, BLUR_SIZE));
@@ -318,19 +301,6 @@ int main(int argc, char **argv) {
 			searchForMovement(thresholdImage, frame1);
 		}
 
-		////create new windows
-		//namedWindow("OPENGL CAMERA", WINDOW_OPENGL);
-		//// enable texture
-		//glEnable(GL_TEXTURE_2D);
-		//setOpenGlDrawCallback("OPENGL CAMERA", on_opengl);
-		////while (waitKey(30) != 'q')
-		//{
-		//	capture>> frame1;
-		//	//create first texture
-		//	loadTexture();
-		//	updateWindow("OPENGL CAMERA");
-		//	angles = angles + 4;
-		//}
 		//show our captured frame
 		imshow("Frame1", frame1);
 		//check to see if a button has been pressed.
