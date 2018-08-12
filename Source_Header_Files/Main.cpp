@@ -24,8 +24,6 @@ H. Kyle "OpenCV Tutorial: Multiple Object Tracking in Real Time (3/3)" https://w
 H. Kyle "OpenCV Tutorial: Real-Time Object Tracking Without Colour" https://www.youtube.com/watch?v=X6rPdRZzgjg [Accessed Aug 6, 2018]
 */
 
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <cmath>
@@ -45,7 +43,6 @@ Mat frame1;
 GLfloat angles = 0.0;
 GLuint texture;
 
-
 //our sensitivity value to be used in the absdiff() function
 const static int SENSITIVITY_VALUE = 50;
 //size of blur used to smooth the intensity image output from absdiff() function
@@ -55,9 +52,6 @@ const static int BLUR_SIZE = 10;
 int theObject[2] = { 0,0 };
 //bounding rectangle of the object, we will use the center of this as its position.
 Rect objectBoundingRectangle = Rect(0, 0, 0, 0);
-
-//threshold for corner detection
-int thresh = 150;
 
 struct myclass {
 	bool operator() (cv::Point pt1, cv::Point pt2) { return (pt1.x < pt2.x); }
@@ -76,7 +70,6 @@ string intToString(int number) {
 	return ss.str();
 }
 
-
 //Helper function to find a cosine of angle between vectors
 //from pt0->pt1 and pt0->pt2
 static double angle(cv::Point pt1, cv::Point pt2, cv::Point pt0)
@@ -94,10 +87,7 @@ void searchForMovement(Mat thresholdImage, Mat &cameraFeed) {
 	//eg. we draw to the cameraFeed to be displayed in the main() function.
 	string name;
 	bool objectDetected = false;
-	Mat temp, temp2;
-	//for corner detection
-	Mat dst, gray;
-	Mat dst_norm, dst_norm_scaled;
+	Mat temp;
 	//contains corner points
 	vector<Point> points;
 	thresholdImage.copyTo(temp);
@@ -165,7 +155,8 @@ void searchForMovement(Mat thresholdImage, Mat &cameraFeed) {
 			// Number of vertices of polygonal curve
 			int vtc = shapeToShow.size();
 
-			if (std::abs(1 - ((double)r.width / r.height)) <= 0.2 && std::abs(1 - (area / (CV_PI * std::pow(radius, 2)))) <= 0.2)
+			if (std::abs(1 - ((double)r.width / r.height)) <= 0.2 
+				&& std::abs(1 - (area / (CV_PI * std::pow(radius, 2)))) <= 0.2)
 			{
 				name = "CIRC";
 				objectDetected = true;
@@ -189,7 +180,6 @@ void searchForMovement(Mat thresholdImage, Mat &cameraFeed) {
 		if (objectDetected)
 		{
 			for (int i = 0; i < shapeToShow.size(); i++) {
-
 				if (i + 1 == shapeToShow.size())
 				{
 					line(cameraFeed, shapeToShow.at(i), shapeToShow.at(0), Scalar(0, 255, 0), 2, 8);
@@ -204,20 +194,15 @@ void searchForMovement(Mat thresholdImage, Mat &cameraFeed) {
 					line(cameraFeed, shapeToShow.at(i), shapeToShow.at(i) - Point(35, 35), Scalar(0, 255, 0), 2, 8);
 					line(cameraFeed, shapeToShow.at(i + 1), shapeToShow.at(i + 1) - Point(35, 35), Scalar(0, 255, 0), 2, 8);
 				}
-					
-
 			}
 
 			putText(cameraFeed, name, Point(x, y), 1, 1, Scalar(0, 255, 255), 2);
 		}
-
 	}
-
 }
 
 int main(int argc, char **argv) {
 	
-
 	//some boolean variables for added functionality
 	bool objectDetected = false;
 	//these two can be toggled by pressing 'd' or 't'
@@ -237,7 +222,6 @@ int main(int argc, char **argv) {
 	//video capture object.
 	VideoCapture capture;
 
-
 	capture.open(0);
 
 	if (!capture.isOpened()) {
@@ -248,7 +232,6 @@ int main(int argc, char **argv) {
 	while (1) {
 
 		//we can loop the video by re-opening the capture every time the video reaches its last frame
-
 
 		//check if the video has reach its last frame.
 		//we add '-1' because we are reading two frames from the video at a time.
@@ -267,42 +250,20 @@ int main(int argc, char **argv) {
 
 		if (debugMode == true) {
 			//show the difference image and threshold image
-			
 			cv::imshow("Threshold Image", thresholdImage);
-
-			// Showing the result
-			//namedWindow("corners_window", CV_WINDOW_AUTOSIZE);
-			//imshow("corners_window", dst_norm_scaled);
 		}
 		else {
 			//if not in debug mode, destroy the windows so we don't see them anymore
 			cv::destroyWindow("Difference Image");
 		}
-		//blur the image to get rid of the noise. This will output an intensity image
-		//cv::blur(thresholdImage, thresholdImage, cv::Size(BLUR_SIZE, BLUR_SIZE));
-		//threshold again to obtain binary image from blur output
-		//cv::threshold(thresholdImage, thresholdImage, SENSITIVITY_VALUE, 255, THRESH_BINARY);
-
-
-		if (debugMode == true) {
-			//show the threshold image after it's been "blurred"
-
-			imshow("Final Threshold Image", thresholdImage);
-
-		}
-		else {
-			//if not in debug mode, destroy the windows so we don't see them anymore
-			cv::destroyWindow("Final Threshold Image");
-		}
 
 		//if tracking enabled, search for contours in our thresholded image
 		if (trackingEnabled) {
-
 			searchForMovement(thresholdImage, frame1);
 		}
 
 		//show our captured frame
-		imshow("Frame1", frame1);
+		imshow("Position your shape within the camera frame! (Hit Esc to Exit)", frame1);
 		//check to see if a button has been pressed.
 		//this 10ms delay is necessary for proper operation of this program
 		//if removed, frames will not have enough time to referesh and a blank 
